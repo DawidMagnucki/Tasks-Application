@@ -11,7 +11,7 @@ COPY gradle gradle
 RUN chmod +x ./gradlew
 RUN ./gradlew build -x test
 
-FROM openjdk:21-jdk
+FROM openjdk:21-slim
 VOLUME /tmp
 
 COPY --from=build /app/build/libs/*.jar app.jar
