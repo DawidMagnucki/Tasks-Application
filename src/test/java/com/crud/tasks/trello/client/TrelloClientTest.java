@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 class TrelloClientTest {
 
     @InjectMocks
-    private TrelloClient trelloClient;
+    private TrelloClient trelloService;
 
     @Mock
     private RestTemplate restTemplate;
@@ -44,7 +44,7 @@ class TrelloClientTest {
 
         when(restTemplate.getForObject(uri, TrelloBoardDto[].class)).thenReturn(trelloBoards);
         // When
-        List<TrelloBoardDto> fetchedTrelloBoards = trelloClient.getTrelloBoards();
+        List<TrelloBoardDto> fetchedTrelloBoards = trelloService.getTrelloBoards();
 
         // Then
         assertEquals(1, fetchedTrelloBoards.size());
@@ -79,7 +79,7 @@ class TrelloClientTest {
         when(restTemplate.postForObject(uri, null, CreatedTrelloCard.class)).thenReturn(createdTrelloCard);
 
         //When
-        CreatedTrelloCard newCard = trelloClient.createNewCard(trelloCardDto);
+        CreatedTrelloCard newCard = trelloService.createNewCard(trelloCardDto);
 
         //Then
         assertEquals("1", newCard.getId());
@@ -103,7 +103,7 @@ class TrelloClientTest {
         when(restTemplate.getForObject(uri, TrelloBoardDto[].class)).thenReturn(null);
 
         //When
-        List<TrelloBoardDto> fetchedTrelloBoards = trelloClient.getTrelloBoards();
+        List<TrelloBoardDto> fetchedTrelloBoards = trelloService.getTrelloBoards();
 
         //Then
         assertEquals(0, fetchedTrelloBoards.size());
