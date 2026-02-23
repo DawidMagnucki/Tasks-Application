@@ -69,25 +69,25 @@ class TrelloClientTest {
 
         URI uri = new URI("http://test.com/cards?key=test&token=test&name=Test%20task&desc=Test%20description&pos=top&idList=test_id");
 
-        CreatedTrelloCard createdTrelloCard = new CreatedTrelloCard(
+        CreatedTrelloCardDto createdTrelloCardDto = new CreatedTrelloCardDto(
                 "1",
                 "test task",
                 "http://test.com",
                 new Badges(1, new AttachmentsByType(new Trello(1, 1)))
         );
 
-        when(restTemplate.postForObject(uri, null, CreatedTrelloCard.class)).thenReturn(createdTrelloCard);
+        when(restTemplate.postForObject(uri, null, CreatedTrelloCardDto.class)).thenReturn(createdTrelloCardDto);
 
         //When
-        CreatedTrelloCard newCard = trelloService.createNewCard(trelloCardDto);
+        CreatedTrelloCardDto newCard = trelloService.createNewCard(trelloCardDto);
 
         //Then
         assertEquals("1", newCard.getId());
         assertEquals("test task", newCard.getName());
         assertEquals("http://test.com", newCard.getShortUrl());
-        assertEquals(1, createdTrelloCard.getBadges().getVotes());
-        assertEquals(1, createdTrelloCard.getBadges().getAttachments().getTrello().getBoard());
-        assertEquals(1, createdTrelloCard.getBadges().getAttachments().getTrello().getCard());
+        assertEquals(1, createdTrelloCardDto.getBadges().getVotes());
+        assertEquals(1, createdTrelloCardDto.getBadges().getAttachments().getTrello().getBoard());
+        assertEquals(1, createdTrelloCardDto.getBadges().getAttachments().getTrello().getCard());
     }
 
     @Test
