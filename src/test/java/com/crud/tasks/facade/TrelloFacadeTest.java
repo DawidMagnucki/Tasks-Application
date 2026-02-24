@@ -1,4 +1,4 @@
-package com.crud.tasks;
+package com.crud.tasks.facade;
 
 import com.crud.tasks.domain.TrelloBoard;
 import com.crud.tasks.domain.TrelloBoardDto;
