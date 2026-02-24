@@ -5,15 +5,14 @@ import com.crud.tasks.domain.TaskDto;
 import com.crud.tasks.mapper.TaskMapper;
 import com.crud.tasks.service.DbService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
@@ -25,27 +24,19 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringJUnitWebConfig
+@WebMvcTest(TaskController.class)
 class TaskControllerTest {
 
+    @Autowired
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @InjectMocks
-    private TaskController taskController;
-
-    @Mock
+    @MockitoBean
     private DbService dbService;
 
-    @Mock
+    @MockitoBean
     private TaskMapper taskMapper;
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(taskController)
-                .setControllerAdvice(new GlobalHttpErrorHandler())
-                .build();
-    }
 
     @Test
     void shouldGetTasks() throws Exception {
@@ -96,7 +87,8 @@ class TaskControllerTest {
         when(dbService.saveTask(any())).thenReturn(new Task());
         when(taskMapper.mapToTaskDto(any())).thenReturn(taskDto);
 
-        String jsonContent = objectMapper.writeValueAsString(taskDto);
+        Gson gson = new Gson();
+        String jsonContent = gson.toJson(taskDto);
 
         // When & Then
         mockMvc.perform(put("/v1/tasks")
@@ -113,7 +105,8 @@ class TaskControllerTest {
         TaskDto taskDto = new TaskDto(1L, "New Task", "New Content");
         when(taskMapper.mapToTask(any())).thenReturn(new Task());
 
-        String jsonContent = objectMapper.writeValueAsString(taskDto);
+        Gson gson = new Gson();
+        String jsonContent = gson.toJson(taskDto);
 
         // When & Then
         mockMvc.perform(post("/v1/tasks")
@@ -135,5 +128,4 @@ class TaskControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Task with given ID doesn't exist."));
     }
-
 }

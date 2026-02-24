@@ -3,17 +3,16 @@ package com.crud.tasks.controller;
 import com.crud.tasks.domain.CreatedTrelloCardDto;
 import com.crud.tasks.domain.TrelloBoardDto;
 import com.crud.tasks.domain.TrelloCardDto;
+import com.crud.tasks.domain.TrelloListDto;
 import com.crud.tasks.trello.facade.TrelloFacade;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
@@ -26,21 +25,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
-class MockitoTrelloControllerTest {
+@SpringJUnitWebConfig
+@WebMvcTest(TrelloController.class)
+class TrelloControllerTest {
 
+    @Autowired
     private MockMvc mockMvc;
 
-    @InjectMocks
-    private TrelloController trelloController;
-
-    @Mock
+    //@MockBean 'org.springframework.boot.test.mock.mockito.MockBean' is deprecated since version 3.4.0 and marked for removal
+    @MockitoBean
     private TrelloFacade trelloFacade;
-
-    @BeforeEach
-    void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(trelloController).build();
-    }
 
     @Test
     void shouldFetchEmptyTrelloBoards() throws Exception {
@@ -57,17 +51,23 @@ class MockitoTrelloControllerTest {
     @Test
     void shouldFetchTrelloBoards() throws Exception {
         //Given
-        List<TrelloBoardDto> trelloBoards = List.of(
-                new TrelloBoardDto("1", "Test Board", List.of()));
+        List<TrelloListDto> trelloLists = List.of(new TrelloListDto("1", "Test list", false));
+        List<TrelloBoardDto> trelloBoards = List.of(new TrelloBoardDto("1", "Test Board", trelloLists));
         when(trelloFacade.fetchTrelloBoards()).thenReturn(trelloBoards);
 
         //When & Then
         mockMvc.perform(get("/v1/trello/boards")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                // Trello board fields
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is("1")))
-                .andExpect(jsonPath("$[0].name", is("Test Board")));
+                .andExpect(jsonPath("$[0].name", is("Test Board")))
+                // Trello list fields
+                .andExpect(jsonPath("$[0].lists", hasSize(1)))
+                .andExpect(jsonPath("$[0].lists[0].id", is("1")))
+                .andExpect(jsonPath("$[0].lists[0].name", is("Test list")))
+                .andExpect(jsonPath("$[0].lists[0].closed", is(false)));
     }
 
     @Test
@@ -82,8 +82,8 @@ class MockitoTrelloControllerTest {
 
         when(trelloFacade.createCard(any(TrelloCardDto.class))).thenReturn(createdCard);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonContent = objectMapper.writeValueAsString(cardDto);
+        Gson gson = new Gson();
+        String jsonContent = gson.toJson(cardDto);
 
         // When & Then
         mockMvc.perform(post("/v1/trello/cards")
